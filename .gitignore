@@ -1,0 +1,7 @@
+data.txt
+ascii.txt
+update_ascii.py
+update_details.py
+.DS_Store
+__pycache__/
+*.pyc
