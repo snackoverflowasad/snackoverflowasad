@@ -220,6 +220,13 @@ def cache_builder(edges, comment_size, force_cache, loc_add=0, loc_del=0):
     Checks each repository in edges to see if it has been updated since the last time it was cached
     If it has, run recursive_loc on that repository to update the LOC count
     """
+    edges = [
+    edge
+    for edge in edges
+    if edge is not None
+    and edge.get("node") is not None
+    and edge["node"].get("nameWithOwner") is not None
+   ]
     cached = True # Assume all repositories are cached
     filename = 'cache/'+hashlib.sha256(USER_NAME.encode('utf-8')).hexdigest()+'.txt' # Create a unique filename for each user
     try:
@@ -262,18 +269,30 @@ def cache_builder(edges, comment_size, force_cache, loc_add=0, loc_del=0):
 
 
 def flush_cache(edges, filename, comment_size):
-    """
-    Wipes the cache file
-    This is called when the number of repositories changes or when the file is first created
-    """
     with open(filename, 'r') as f:
         data = []
         if comment_size > 0:
-            data = f.readlines()[:comment_size] # only save the comment
+            data = f.readlines()[:comment_size]
+
     with open(filename, 'w') as f:
         f.writelines(data)
-        for node in edges:
-            f.write(hashlib.sha256(node['node']['nameWithOwner'].encode('utf-8')).hexdigest() + ' 0 0 0 0\n')
+
+        for edge in edges:
+            if edge is None:
+                continue
+
+            repo = edge.get("node")
+            if repo is None:
+                continue
+
+            name = repo.get("nameWithOwner")
+            if not name:
+                continue
+
+            f.write(
+                hashlib.sha256(name.encode("utf-8")).hexdigest()
+                + " 0 0 0 0\n"
+            )
 
 
 def add_archive():
